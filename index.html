@@ -9,7 +9,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="今天吃什麼">
-<meta name="theme-color" content="#1c1030">
+<meta name="theme-color" content="#0b0b13">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
 
 <style>
   @font-face{
@@ -130,6 +132,10 @@
   .confetti{position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden;}
   .foot{font-size:12px; opacity:.85; margin-top:10px; text-align:center;}
   .foot a{color:#fff; cursor:pointer; text-decoration:underline; opacity:.7;}
+  .quickpick{ display:inline-block; margin-top:12px; color:var(--gold); cursor:pointer; text-decoration:underline; font-size:14px; }
+  .wintime{ margin-top:8px; font-size:14px; opacity:.9; }
+  .dadmsg{ margin-top:12px; padding:10px 14px; border:2px dashed var(--gold); color:#ffe9b0;
+    font-size:15px; line-height:1.6; max-width:340px; }
   .palrow{ display:flex; gap:8px; justify-content:center; margin-bottom:8px; }
   .palrow button{ width:34px; height:34px; border:2px solid rgba(255,255,255,.3); cursor:pointer; padding:0;
     display:grid; grid-template-columns:1fr 1fr; overflow:hidden; }
@@ -156,7 +162,7 @@
 
 <div class="foot">
   <div class="palrow" id="palrow"></div>
-  <a id="peek">偷偷預覽生日彩蛋</a>
+  <a id="muteToggle">音效：開</a>　·　<a id="peek">偷偷預覽生日彩蛋</a>
 </div>
 
 <!-- 開始 -->
@@ -166,11 +172,11 @@
     <h2>吃什麼大冒險</h2>
     <div class="howto">
       左邊<b>搖桿</b>帶老爸在迷宮裡衝，<br>
-      撿滿 <b>5 個 <span class="ico" data-ico="drumstick" data-px="2"></span> 靈感</b>，今晚吃什麼就交給命運（<br><br>
+      撿滿 <b>5 個 <span class="ico" data-ico="drumstick" data-px="2"></span> 靈感</b>，今晚吃什麼就交給命運<br><br>
       路上有三隻很煩的鬼：<b>隨便</b>、<b>不知道</b>、<b>給你選</b><br>
       —就是平常害你選不出來的那幾隻，碰到就重來。<br>
       快被抓到就按 <b><span class="ico" data-ico="shield" data-px="2"></span>無敵</b>（一場 3 次、每次 2 秒），<br>
-      無敵時大搖大擺穿過去，還能把鬼撞飛（
+      無敵時大搖大擺穿過去，還能把鬼撞飛！
     </div>
     <div class="lastEaten" id="lastEaten"></div>
     <div class="pickLabel">今天想吃哪一類？</div>
@@ -181,6 +187,7 @@
       <button data-cat="any">隨便</button>
     </div>
     <button class="go" id="startBtn">開始！</button>
+    <div><a class="quickpick" id="quickBtn">懶得玩？直接抽今晚吃什麼 →</a></div>
   </div>
 </div>
 
@@ -192,6 +199,8 @@
     <div class="photos" id="winPhotos"></div>
     <div class="eat" id="winEat"></div>
     <div class="quip" id="winQuip"></div>
+    <div class="wintime" id="winTime" style="display:none"></div>
+    <div class="dadmsg" id="winDadMsg" style="display:none"></div>
     <button class="go" id="winBtn">再玩一次</button>
   </div>
 </div>
@@ -216,6 +225,7 @@
     <h2 id="eggTitle">生日快樂，老爸！</h2>
     <div class="photos" id="eggPhotos"></div>
     <p id="eggMsg">都當爸爸的人了，還在為晚餐糾結（<br>沒關係，今天壽星最大，晚餐交給這台幫你決定就好。</p>
+    <div class="dadmsg" id="eggDadMsg"></div>
     <button class="go" id="eggBtn">開始冒險 →</button>
   </div>
 </div>
@@ -227,6 +237,8 @@
    ★ 之後只要改這幾個地方，其它都不用動 ★
    ========================================================= */
 const DAD_BIRTHDAY = "08-18";   // 爸爸（和你）的生日 "MM-DD"。生日當天首次打開會自動播彩蛋。
+// 想對老爸說的一句話（會出現在生日彩蛋，以及他第一次通關時）。改成你的話。
+const MSG_TO_DAD = "老爸，生日快樂。這台是我做給你的，以後晚餐別再說隨便了（　—— 你兒子";
 
 // 食物清單（分三類；「隨便」＝三類全部一起抽）
 const FOODS = {
@@ -453,8 +465,8 @@ function onPlayerArrive(){
   const before = inspirations.length;
   inspirations = inspirations.filter(i=> !(i.x===player.cx && i.y===player.cy));
   if(inspirations.length<before){
-    collected++; updateHud(); burst(player.cx, player.cy);
-    if(collected>=GOAL){ win(); }
+    collected++; updateHud(); burst(player.cx, player.cy); sfx('collect'); vibrate(25);
+    if(collected>=GOAL){ win(true); }
   }
 }
 
@@ -561,21 +573,42 @@ function pickFood(){
   return pool[pool.length-1];
 }
 
-function win(){
+function win(fromGame){
   running=false;
+  sfx('win'); vibrate([40,40,120]);
   const eat = pickFood();
   localStorage.setItem('lastEaten', eat);
-  const quip = QUIPS[eat] || QUIP_FALLBACK;
   document.getElementById('winEat').innerHTML = `今晚就吃 <b>${eat}</b>`;
-  document.getElementById('winQuip').textContent = quip;
+  document.getElementById('winQuip').textContent = QUIPS[eat] || QUIP_FALLBACK;
   const special = getSpecial();
   const banner = document.getElementById('winBanner');
-  if(special){ banner.style.display='inline-block'; banner.textContent=special; }
-  else banner.style.display='none';
+  if(special){ banner.style.display='inline-block'; banner.textContent=special; } else banner.style.display='none';
+  // 計時 + 最佳紀錄（只有玩迷宮通關才算）
+  const timeEl=document.getElementById('winTime');
+  if(fromGame){
+    const sec=(performance.now()-gameStartTime)/1000;
+    let best=parseFloat(localStorage.getItem('bestTime')||'0');
+    const isBest = !best || sec<best;
+    if(isBest){ best=sec; localStorage.setItem('bestTime', sec.toFixed(1)); }
+    timeEl.style.display='block';
+    timeEl.textContent = `花了 ${sec.toFixed(1)} 秒決定` + (isBest ? '　★新紀錄！' : `（最快 ${best.toFixed(1)} 秒）`);
+    document.getElementById('winBtn').textContent='再玩一次';
+    winBtn.onclick=openStart;
+  } else {
+    timeEl.style.display='none';
+    document.getElementById('winBtn').textContent='再抽一次';
+    winBtn.onclick=quickPick;
+  }
+  // 第一次通關給爸爸的悄悄話
+  const dm=document.getElementById('winDadMsg');
+  if(fromGame && !localStorage.getItem('firstWin')){ localStorage.setItem('firstWin','1'); dm.textContent=MSG_TO_DAD; dm.style.display='block'; }
+  else dm.style.display='none';
   show('winScreen'); setTimeout(()=>burstScreen(),200);
 }
+function quickPick(){ hideAll(); win(false); }
 function lose(info){
   running=false;
+  sfx('lose'); vibrate([90,50,140]);
   const nameEl=document.getElementById('loseName');
   nameEl.textContent = info.name; nameEl.style.color = info.color;
   document.getElementById('loseDot').style.background = info.color;
@@ -587,7 +620,8 @@ function lose(info){
 function show(id){ document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show'));
   document.getElementById(id).classList.add('show'); }
 function hideAll(){ document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('show')); }
-function startGame(){ hideAll(); resetGame(); running=true; }
+let gameStartTime=0;
+function startGame(){ hideAll(); resetGame(); running=true; gameStartTime=performance.now(); ac(); }
 
 // 開始畫面：顯示「上次吃了」＋標出目前選的類別
 function refreshStartUI(){
@@ -607,6 +641,31 @@ document.getElementById('winBtn').onclick   = openStart;   // 贏了 → 回開�
 document.getElementById('loseBtn').onclick  = openStart;   // 輸了 → 回開始畫面
 document.getElementById('eggBtn').onclick   = startGame;
 document.getElementById('peek').onclick     = ()=> show('eggScreen');
+document.getElementById('quickBtn').onclick = quickPick;
+
+/* ---------------- 音效 + 震動 ---------------- */
+let audioCtx=null, muted = localStorage.getItem('muted')==='1';
+function ac(){ try{ if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume(); }catch(e){} return audioCtx; }
+function beep(freq,dur,type,vol){ if(muted) return; const c=ac(); if(!c) return;
+  const o=c.createOscillator(), g=c.createGain(); o.type=type||'square'; o.frequency.value=freq;
+  o.connect(g); g.connect(c.destination); const t=c.currentTime;
+  g.gain.setValueAtTime(vol||0.06,t); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.start(t); o.stop(t+dur+0.02); }
+function sfx(kind){ if(muted) return;
+  if(kind==='collect'){ beep(880,0.07,'square',0.05); setTimeout(()=>beep(1320,0.07,'square',0.05),55); }
+  else if(kind==='dash'){ beep(240,0.05,'sawtooth',0.06); setTimeout(()=>beep(680,0.12,'sawtooth',0.05),50); }
+  else if(kind==='win'){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>beep(f,0.15,'square',0.06),i*110)); }
+  else if(kind==='lose'){ beep(200,0.22,'square',0.07); setTimeout(()=>beep(150,0.34,'square',0.07),110); } }
+function vibrate(p){ if(!muted && navigator.vibrate){ try{ navigator.vibrate(p); }catch(e){} } }
+const muteEl=document.getElementById('muteToggle');
+function refreshMute(){ muteEl.textContent = '音效：'+(muted?'關':'開'); }
+muteEl.onclick=()=>{ muted=!muted; localStorage.setItem('muted', muted?'1':'0'); refreshMute(); if(!muted){ ac(); beep(660,0.08,'square',0.05); } };
+refreshMute();
+
+// 生日彩蛋裡放給爸爸的話
+{ const e=document.getElementById('eggDadMsg'); if(e) e.textContent=MSG_TO_DAD; }
+
 /* ---------------- 像素 icon（取代 emoji） ---------------- */
 const ICONS = {
   gem:   {p:{H:'#ffe58a',G:'#f5b301'}, g:["...H...","..HGH..",".HGGGH.","HGGGGGH",".HGGGH.","..HGH..","...H..."]},
@@ -678,6 +737,11 @@ buildPalRow();
 
 refreshStartUI();   // 首次載入先整理一次
 
+// 離線 / App 化：註冊 service worker（只在網站上生效，直接開檔案時自動略過）
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
 function shouldEgg(){
   if(!DAD_BIRTHDAY) return false;
   const now=new Date();
@@ -735,7 +799,7 @@ let mouseDown=false;
 zone.addEventListener('mousedown', e=>{ mouseDown=true; joyStart(e.clientX,e.clientY); });
 addEventListener('mousemove', e=>{ if(mouseDown) joyMove(e.clientX,e.clientY); });
 addEventListener('mouseup', ()=>{ if(mouseDown){ mouseDown=false; joyEnd(); } });
-function doDash(){ if(dashesLeft>0 && !dashing && running){ dashing=true; dashTimer=2; dashesLeft--; updateHud(); } }
+function doDash(){ if(dashesLeft>0 && !dashing && running){ dashing=true; dashTimer=2; dashesLeft--; updateHud(); sfx('dash'); vibrate([20,25,40]); } }
 document.getElementById('dashBtn').addEventListener('touchstart',e=>{e.preventDefault();doDash();},{passive:false});
 document.getElementById('dashBtn').addEventListener('click',doDash);
 // 電腦鍵盤（方便測試）
