@@ -97,6 +97,8 @@
   .overlay .card{ max-width:420px; }
   .overlay h2{ font-size:clamp(26px,8vw,40px); margin:8px 0; }
   .overlay .emoji{ font-size:64px; animation:pop 1s ease infinite alternate; }
+  .heroimg{ width:104px; height:104px; image-rendering:pixelated; border-radius:16px;
+    border:3px solid var(--goldDark); background:#fff; object-fit:cover; }
   @keyframes pop{from{transform:scale(1)}to{transform:scale(1.12) rotate(-4deg)}}
   .overlay p{ font-size:17px; line-height:1.7; opacity:.95; margin:8px 0; }
   .overlay .eat{ font-size:26px; font-weight:800; margin:10px 0 2px;}
@@ -139,7 +141,7 @@
 
 <header><h1>爸爸今天吃什麼</h1></header>
 <div class="hud">
-  <div class="box"><span class="ico" data-ico="gem" data-px="3"></span> 靈感 <span id="hudGoal">0</span>/<span id="hudTotal">5</span></div>
+  <div class="box"><span class="ico" data-ico="drumstick" data-px="3"></span> 靈感 <span id="hudGoal">0</span>/<span id="hudTotal">5</span></div>
   <div class="box"><span class="ico" data-ico="shield" data-px="3"></span> 無敵 <span id="hudDash">3</span></div>
 </div>
 
@@ -160,11 +162,11 @@
 <!-- 開始 -->
 <div class="overlay show" id="startScreen">
   <div class="card">
-    <div class="emoji" data-ico="bowl" data-px="9"></div>
+    <div class="emoji"><img id="startHeroImg" class="heroimg" alt=""></div>
     <h2>吃什麼大冒險</h2>
     <div class="howto">
       左邊<b>搖桿</b>帶老爸在迷宮裡衝，<br>
-      撿滿 <b>5 個 <span class="ico" data-ico="gem" data-px="2"></span> 靈感</b>，今晚吃什麼就交給命運（<br><br>
+      撿滿 <b>5 個 <span class="ico" data-ico="drumstick" data-px="2"></span> 靈感</b>，今晚吃什麼就交給命運（<br><br>
       路上有三隻很煩的鬼：<b>隨便</b>、<b>不知道</b>、<b>給你選</b><br>
       —就是平常害你選不出來的那幾隻，碰到就重來。<br>
       快被抓到就按 <b><span class="ico" data-ico="shield" data-px="2"></span>無敵</b>（一場 3 次、每次 2 秒），<br>
@@ -224,7 +226,7 @@
 /* =========================================================
    ★ 之後只要改這幾個地方，其它都不用動 ★
    ========================================================= */
-const DAD_BIRTHDAY = "";   // 爸爸生日 "MM-DD"，例："08-20"。留空則不自動觸發彩蛋。
+const DAD_BIRTHDAY = "08-18";   // 爸爸（和你）的生日 "MM-DD"。生日當天首次打開會自動播彩蛋。
 
 // 食物清單（分三類；「隨便」＝三類全部一起抽）
 const FOODS = {
@@ -265,7 +267,7 @@ const QUIPS = {
 };
 const QUIP_FALLBACK = "轉到就吃這個，別再問媽了（";
 // 老爸像素臉（照片縮成 44px；要換人就換這串 data URI）
-const PLAYER_IMG = "data:image/png;base64,/9j/4AAQSkZJRgABAQAA8ADwAAD/4QNeRXhpZgAATU0AKgAAAAgACAEPAAIAAAAGAAAAbgEQAAIAAAANAAAAdAEaAAUAAAABAAAAggEbAAUAAAABAAAAigEoAAMAAAABAAIAAAExAAIAAAA1AAAAkgEyAAIAAAAUAAAAyIdpAAQAAAABAAAA3AAAAABDYW5vbgBDYW5vbiBFT1MgUlAAAAAAAPAAAAABAAAA8AAAAAFBZG9iZSBQaG90b3Nob3AgTGlnaHRyb29tIENsYXNzaWMgMTQuNS4xIChNYWNpbnRvc2gpAAAyMDI2OjA3OjE0IDA5OjA3OjIxAAAigpoABQAAAAEAAAJ6gp0ABQAAAAEAAAKCiCIAAwAAAAEAAQAAiCcAAwAAAAEDIAAAiDAAAwAAAAEAAgAAiDIABAAAAAEAAAMgkAAABwAAAAQwMjMxkAMAAgAAABQAAAKKkAQAAgAAABQAAAKekBAAAgAAAAcAAAKykBEAAgAAAAcAAAK6kBIAAgAAAAcAAALCkgEACgAAAAEAAALKkgIABQAAAAEAAALSkgQACgAAAAEAAALakgUABQAAAAEAAALikgcAAwAAAAEAAwAAkgkAAwAAAAEAAAAAkgoABQAAAAEAAALqkpEAAgAAAAMwMAAAkpIAAgAAAAMwMAAAoAIABAAAAAEAAAAsoAMABAAAAAEAAAAsog4ABQAAAAEAAALyog8ABQAAAAEAAAL6ohAAAwAAAAEAAwAApAEAAwAAAAEAAAAApAIAAwAAAAEAAQAApAMAAwAAAAEAAAAApAYAAwAAAAEAAAAApDEAAgAAAA0AAAMCpDIABQAAAAQAAAMQpDQAAgAAABkAAAMwpDUAAgAAAAsAAANKAAAAAAAAAAEAAAA8AAAAPwAAAAoyMDI0OjA4OjE4IDEyOjM3OjM5ADIwMjQ6MDg6MTggMTI6Mzc6MzkAKzA4OjAwAAArMDg6MDAAACswODowMAAAAAFYNwAAOkYAARjTAAA04QAAAAAAAAABAAAAKwAAAAgAAABJAAAAAQATc10AAALeABNzXQAAAt41NjgwMjEwMDA5NDEAAAAAABgAAAABAAAAaQAAAAEAAAAAAAAAAQAAAAAAAAABUkYyNC0xMDVtbSBGNC03LjEgSVMgU1RNAAAzMDcyMDAzOTgyAAD/4QsPaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLwA8P3hwYWNrZXQgYmVnaW49Iu+7vyIgaWQ9Ilc1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCI/PiA8eDp4bXBtZXRhIHhtbG5zOng9ImFkb2JlOm5zOm1ldGEvIiB4OnhtcHRrPSJYTVAgQ29yZSA2LjAuMCI+IDxyZGY6UkRGIHhtbG5zOnJkZj0iaHR0cDovL3d3dy53My5vcmcvMTk5OS8wMi8yMi1yZGYtc3ludGF4LW5zIyI+IDxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOmF1eD0iaHR0cDovL25zLmFkb2JlLmNvbS9leGlmLzEuMC9hdXgvIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOnBob3Rvc2hvcD0iaHR0cDovL25zLmFkb2JlLmNvbS9waG90b3Nob3AvMS4wLyIgYXV4OkxlbnNJbmZvPSIyNC8xIDEwNS8xIDAvMCAwLzAiIGF1eDpGaXJtd2FyZT0iMS42LjEiIGF1eDpJbWFnZU51bWJlcj0iMCIgYXV4OkxlbnNJRD0iNjExODIiIGF1eDpMZW5zPSJSRjI0LTEwNW1tIEY0LTcuMSBJUyBTVE0iIGF1eDpTZXJpYWxOdW1iZXI9IjU2ODAyMTAwMDk0MSIgYXV4OkZsYXNoQ29tcGVuc2F0aW9uPSIwLzEiIGF1eDpMZW5zU2VyaWFsTnVtYmVyPSIzMDcyMDAzOTgyIiB4bXA6TW9kaWZ5RGF0ZT0iMjAyNi0wNy0xNFQwOTowNzoyMSIgeG1wOkNyZWF0ZURhdGU9IjIwMjQtMDgtMThUMTI6Mzc6MzkrMDg6MDAiIHBob3Rvc2hvcDpEYXRlQ3JlYXRlZD0iMjAyNC0wOC0xOFQxMjozNzozOSswODowMCIvPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg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";
+const PLAYER_IMG = "data:image/png;base64,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";
 
 /* --- 難度（覺得太難就把數字往「簡單」方向調） --- */
 const GOAL         = 5;     // 要收集幾個靈感才贏（越少越簡單）
@@ -481,13 +483,10 @@ function draw(){
   drawPlayer(rx(player)*cell+cell/2, ry(player)*cell+cell/2);
 }
 function drawItem(cx,cy){
-  const x=cx*cell+cell/2, y=cy*cell+cell/2, s=cell*0.5;
+  const x=cx*cell+cell/2, y=cy*cell+cell/2;
   ctx.save();
-  ctx.fillStyle='rgba(255,214,74,.22)'; ctx.beginPath(); ctx.arc(x,y,s*0.95,0,7); ctx.fill(); // 光暈
-  ctx.fillStyle='#ffd24a'; ctx.strokeStyle='#7a5a10'; ctx.lineWidth=2;                          // 寶石
-  ctx.beginPath(); ctx.moveTo(x,y-s*0.62); ctx.lineTo(x+s*0.46,y); ctx.lineTo(x,y+s*0.62); ctx.lineTo(x-s*0.46,y); ctx.closePath();
-  ctx.fill(); ctx.stroke();
-  ctx.fillStyle='#fff'; ctx.fillRect(x-s*0.2,y-s*0.3,s*0.14,s*0.14);                             // 高光
+  ctx.fillStyle='rgba(255,190,90,.20)'; ctx.beginPath(); ctx.arc(x,y,cell*0.46,0,7); ctx.fill(); // 光暈
+  drawPixCanvas('drumstick', x, y, cell*0.82);                                                    // 雞腿
   ctx.restore();
 }
 function drawGhostTag(cx,cy,info){
@@ -504,14 +503,14 @@ function drawGhostTag(cx,cy,info){
   ctx.fillStyle='#fff'; ctx.fillText(name, x, y+1);            // 白字
 }
 function drawPlayer(px,py){
-  const s=cell*0.94;
+  const s=cell*0.98;
   ctx.save();
-  ctx.beginPath(); ctx.arc(px,py,s/2,0,7); ctx.clip();         // 圓形裁掉照片白角
+  ctx.beginPath(); ctx.arc(px,py,s/2,0,7); ctx.clip();
+  ctx.fillStyle='#fff'; ctx.fillRect(px-s/2,py-s/2,s,s);       // 白底墊，讓臉更亮
   if(playerReady) ctx.drawImage(playerImg, px-s/2, py-s/2, s, s);
-  else { ctx.fillStyle='#e8c39e'; ctx.fillRect(px-s/2,py-s/2,s,s); }
   ctx.restore();
   ctx.beginPath(); ctx.arc(px,py,s/2,0,7);
-  ctx.lineWidth=Math.max(2,cell*0.1); ctx.strokeStyle = dashing ? '#ffd24a' : '#120a26';
+  ctx.lineWidth=Math.max(2.5,cell*0.12); ctx.strokeStyle = dashing ? '#ffd24a' : '#ffffff'; // 亮外框，跳出深色迷宮
   ctx.stroke();
   if(dashing){                                                 // 無敵光暈
     ctx.beginPath(); ctx.arc(px,py,s*0.62,0,7);
@@ -616,6 +615,7 @@ const ICONS = {
   bowl:  {p:{s:'#7a7aa8',O:'#f4c86a',W:'#ffffff',R:'#d3453f'}, g:["..s.s.s..",".OOOOOOO.","WWWWWWWWW",".RRRRRRR.","..RRRRR..","...RRR..."]},
   trophy:{p:{Y:'#ffd24a',W:'#b9741f'}, g:[".YYYYY.",".YYYYY.","Y.YYY.Y",".YYYYY.","..YYY..","...Y...",".WWWWW."]},
   skull: {p:{W:'#e8e8f0',B:'#20142e'}, g:[".WWWWW.","WWWWWWW","WBBWBBW","WBBWBBW","WWWWWWW","WWBWBWW",".W.W.W."]},
+  drumstick:{p:{M:'#c8702a',m:'#f4b062',B:'#f2e8cc'}, g:["..MMMM..",".MMmMMM.","MMmMMMMM","MMMMMMMM","MMMMMMMM",".MMMMMM.","..MMMM..","...BB...","...BB...","..B..B..","..B..B.."]},
 };
 function pixSvg(name, px){
   const ic=ICONS[name]; if(!ic) return '';
@@ -627,6 +627,18 @@ function pixSvg(name, px){
 function fillIcons(root){ (root||document).querySelectorAll('[data-ico]').forEach(el=>{
   el.innerHTML = pixSvg(el.dataset.ico, +(el.dataset.px||4)); }); }
 fillIcons();
+// 在 canvas 上畫像素 icon（給迷宮內道具用）
+function drawPixCanvas(name, cx, cy, size){
+  const ic=ICONS[name]; if(!ic) return;
+  const rows=ic.g, h=rows.length, w=rows[0].length, px=size/Math.max(w,h);
+  const ox=cx-(w*px)/2, oy=cy-(h*px)/2;
+  for(let yy=0;yy<h;yy++) for(let xx=0;xx<rows[yy].length;xx++){
+    const col=ic.p[rows[yy][xx]]; if(!col) continue;
+    ctx.fillStyle=col; ctx.fillRect(Math.round(ox+xx*px), Math.round(oy+yy*px), Math.ceil(px), Math.ceil(px));
+  }
+}
+// 開始畫面主圖＝手繪爸爸
+{ const hero=document.getElementById('startHeroImg'); if(hero) hero.src=PLAYER_IMG; }
 
 /* ---------------- 配色方案 ---------------- */
 const PALETTES = {
