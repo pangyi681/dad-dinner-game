@@ -132,7 +132,9 @@
   .confetti{position:fixed; inset:0; pointer-events:none; z-index:60; overflow:hidden;}
   .foot{font-size:12px; opacity:.85; margin-top:10px; text-align:center;}
   .foot a{color:#fff; cursor:pointer; text-decoration:underline; opacity:.7;}
-  .quickpick{ display:inline-block; margin-top:12px; color:var(--gold); cursor:pointer; text-decoration:underline; font-size:14px; }
+  .quickpick{ display:inline-block; margin-top:26px; padding:7px 14px; font-size:13px; cursor:pointer;
+    background:var(--panel); color:var(--gold); border:2px solid var(--ui); box-shadow:0 3px 0 var(--uidark); }
+  .quickpick:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--uidark); }
   .wintime{ margin-top:8px; font-size:14px; opacity:.9; }
   .dadmsg{ margin-top:12px; padding:10px 14px; border:2px dashed var(--gold); color:#ffe9b0;
     font-size:15px; line-height:1.6; max-width:340px; }
@@ -187,7 +189,7 @@
       <button data-cat="any">隨便</button>
     </div>
     <button class="go" id="startBtn">開始！</button>
-    <div><a class="quickpick" id="quickBtn">懶得玩？直接抽今晚吃什麼 →</a></div>
+    <div><button class="quickpick" id="quickBtn">懶得玩了！直接跟我說吃什麼！</button></div>
   </div>
 </div>
 
