@@ -136,7 +136,7 @@
     background:var(--panel); color:var(--gold); border:2px solid var(--ui); box-shadow:0 3px 0 var(--uidark); }
   .quickpick:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--uidark); }
   .wintime{ margin-top:8px; font-size:14px; opacity:.9; }
-  .dadmsg{ margin-top:12px; padding:10px 14px; border:2px dashed var(--gold); color:#ffe9b0;
+  .dadmsg{ margin:12px auto; text-align:center; padding:10px 14px; border:2px dashed var(--gold); color:#ffe9b0;
     font-size:15px; line-height:1.6; max-width:340px; }
   .palrow{ display:flex; gap:8px; justify-content:center; margin-bottom:8px; }
   .palrow button{ width:34px; height:34px; border:2px solid rgba(255,255,255,.3); cursor:pointer; padding:0;
@@ -278,6 +278,7 @@ const QUIPS = {
   "漢堡":"漢堡？老爸你在裝年輕齁（",
   "蚵仔煎":"蚵仔煎，夜市魂上身是不是（",
   "在家煮":"在家煮最實在，省下的錢記得分我一點（",
+  "串燒":"這次總算不是燒肉了　到底要吃多少次燒肉？",
 };
 const QUIP_FALLBACK = "轉到就吃這個，別再問媽了（";
 // 老爸像素臉（照片縮成 44px；要換人就換這串 data URI）
@@ -566,6 +567,8 @@ function foodPool(){
 }
 // 依權重抽一道菜：節日/假日時，高級食物權重 × PREMIUM_BOOST
 function pickFood(){
+  const _n=new Date(); const _md=String(_n.getMonth()+1).padStart(2,"0")+"-"+String(_n.getDate()).padStart(2,"0");
+  if(DAD_BIRTHDAY && _md===DAD_BIRTHDAY) return "串燒";   // 生日特餐
   const pool = foodPool();
   if(!pool.length) return "隨便啦";
   const boost = getSpecial() ? PREMIUM_BOOST : 1;
