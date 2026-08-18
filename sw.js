@@ -1,5 +1,5 @@
-// Service worker：讓遊戲可離線玩（快取整包）
-const CACHE = 'chishenme-v1';
+// Service worker：連網時優先抓最新版，離線時才用快取（避免手機一直開到舊版）
+const CACHE = 'chishenme-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-180.png'];
 
 self.addEventListener('install', e => {
@@ -12,11 +12,12 @@ self.addEventListener('activate', e => {
 });
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  // network-first：先抓網路最新，成功就順便更新快取；失敗（離線）才用快取
   e.respondWith(
-    caches.match(e.request).then(cached => cached || fetch(e.request).then(resp => {
+    fetch(e.request).then(resp => {
       const copy = resp.clone();
       caches.open(CACHE).then(c => c.put(e.request, copy)).catch(()=>{});
       return resp;
-    }).catch(() => caches.match('./index.html')))
+    }).catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
   );
 });

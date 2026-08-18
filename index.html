@@ -552,7 +552,7 @@ setInterval(()=>{ if(performance.now()-lastWall > 200) tick(performance.now()); 
 function getSpecial(){
   const now = new Date();
   const mmdd = String(now.getMonth()+1).padStart(2,'0')+"-"+String(now.getDate()).padStart(2,'0');
-  if(DAD_BIRTHDAY && mmdd===DAD_BIRTHDAY) return "🎂 壽星今天最大，想吃啥就吃啥（";
+  if(isBirthday()) return "🎂 壽星今天最大，想吃啥就吃啥（";
   if(mmdd==="12-25") return "🎄 聖誕欸，今天不加菜對不起自己（";
   if(mmdd==="04-04") return "🎈 兒童節你最大，別客氣（";
   const day = now.getDay();
@@ -566,9 +566,14 @@ function foodPool(){
   return FOODS[category] ? FOODS[category].items.slice() : [];
 }
 // 依權重抽一道菜：節日/假日時，高級食物權重 × PREMIUM_BOOST
+const FORCE_BDAY = new URLSearchParams(location.search).has("bday");  // 網址加 ?bday 可預覽生日
+function isBirthday(){
+  if(FORCE_BDAY) return true;
+  const n=new Date(); const md=String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");
+  return !!DAD_BIRTHDAY && md===DAD_BIRTHDAY;
+}
 function pickFood(){
-  const _n=new Date(); const _md=String(_n.getMonth()+1).padStart(2,"0")+"-"+String(_n.getDate()).padStart(2,"0");
-  if(DAD_BIRTHDAY && _md===DAD_BIRTHDAY) return "串燒";   // 生日特餐
+  if(isBirthday()) return "串燒";   // 生日特餐
   const pool = foodPool();
   if(!pool.length) return "隨便啦";
   const boost = getSpecial() ? PREMIUM_BOOST : 1;
@@ -748,6 +753,7 @@ if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
 }
 
 function shouldEgg(){
+  if(FORCE_BDAY) return true;
   if(!DAD_BIRTHDAY) return false;
   const now=new Date();
   const mmdd=String(now.getMonth()+1).padStart(2,'0')+"-"+String(now.getDate()).padStart(2,'0');
