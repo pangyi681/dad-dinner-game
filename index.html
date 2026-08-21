@@ -136,7 +136,9 @@
   .quickpick{ display:inline-block; margin-top:26px; padding:7px 14px; font-size:13px; cursor:pointer;
     background:var(--panel); color:var(--gold); border:2px solid var(--ui); box-shadow:0 3px 0 var(--uidark); }
   .quickpick:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--uidark); }
-  .homelink{ display:inline-block; margin-top:12px; color:#cfc3e8; opacity:.85; cursor:pointer; text-decoration:underline; font-size:13px; }
+  .homelink{ display:inline-block; margin-top:20px; padding:8px 16px; font-size:15px; cursor:pointer;
+    background:var(--panel); color:var(--gold); border:2px solid var(--ui); box-shadow:0 3px 0 var(--uidark); }
+  .homelink:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--uidark); }
   .wintime{ margin-top:8px; font-size:14px; opacity:.9; }
   .dadmsg{ margin:12px auto; text-align:center; padding:10px 14px; border:2px dashed var(--gold); color:#ffe9b0;
     font-size:15px; line-height:1.6; max-width:340px; }
@@ -166,7 +168,8 @@
 
 <div class="foot">
   <div class="palrow" id="palrow"></div>
-  <a id="homeToggle">← 返回主畫面</a>　·　<a id="muteToggle">音效：開</a>
+  <a class="homelink" id="homeToggle">← 返回主畫面</a>
+  <div style="margin-top:8px"><a id="muteToggle">音效：開</a></div>
 </div>
 
 <!-- 開始 -->
