@@ -136,6 +136,7 @@
   .quickpick{ display:inline-block; margin-top:26px; padding:7px 14px; font-size:13px; cursor:pointer;
     background:var(--panel); color:var(--gold); border:2px solid var(--ui); box-shadow:0 3px 0 var(--uidark); }
   .quickpick:active{ transform:translateY(3px); box-shadow:0 1px 0 var(--uidark); }
+  .homelink{ display:inline-block; margin-top:12px; color:#cfc3e8; opacity:.85; cursor:pointer; text-decoration:underline; font-size:13px; }
   .wintime{ margin-top:8px; font-size:14px; opacity:.9; }
   .dadmsg{ margin:12px auto; text-align:center; padding:10px 14px; border:2px dashed var(--gold); color:#ffe9b0;
     font-size:15px; line-height:1.6; max-width:340px; }
@@ -165,7 +166,7 @@
 
 <div class="foot">
   <div class="palrow" id="palrow"></div>
-  <a id="muteToggle">音效：開</a>　·　<a id="peek">偷偷預覽生日彩蛋</a>
+  <a id="homeToggle">← 返回主畫面</a>　·　<a id="muteToggle">音效：開</a>
 </div>
 
 <!-- 開始 -->
@@ -205,6 +206,7 @@
     <div class="wintime" id="winTime" style="display:none"></div>
     <div class="dadmsg" id="winDadMsg" style="display:none"></div>
     <button class="go" id="winBtn">再玩一次</button>
+    <div><a class="homelink" id="winHomeBtn">返回主畫面</a></div>
   </div>
 </div>
 
@@ -218,6 +220,7 @@
     </div>
     <p>問了等於沒問，重來啦（</p>
     <button class="go" id="loseBtn">再來一次</button>
+    <div><a class="homelink" id="loseHomeBtn">返回主畫面</a></div>
   </div>
 </div>
 
@@ -580,11 +583,18 @@ function pickFood(){
   if(isBirthday()) return "串燒";   // 生日特餐
   const pool = foodPool();
   if(!pool.length) return "隨便啦";
+  // 避免重複：排除最近抽過的（至少別跟上一次一樣）
+  let recent = JSON.parse(localStorage.getItem('recentEaten')||'[]');
+  let cand = pool.filter(f=>!recent.includes(f));
+  if(!cand.length) cand = pool.filter(f=> f!==recent[recent.length-1]);
+  if(!cand.length) cand = pool.slice();
   const boost = getSpecial() ? PREMIUM_BOOST : 1;
-  const weights = pool.map(f => (WEIGHTS[f]||1) * (PREMIUM.includes(f) ? boost : 1));
-  let total = weights.reduce((a,b)=>a+b,0), r = Math.random()*total;
-  for(let i=0;i<pool.length;i++){ r -= weights[i]; if(r<0) return pool[i]; }
-  return pool[pool.length-1];
+  const weights = cand.map(f => (WEIGHTS[f]||1) * (PREMIUM.includes(f) ? boost : 1));
+  let total = weights.reduce((a,b)=>a+b,0), r = Math.random()*total, pick = cand[cand.length-1];
+  for(let i=0;i<cand.length;i++){ r -= weights[i]; if(r<0){ pick = cand[i]; break; } }
+  recent.push(pick); const cap = Math.min(pool.length-1, 5); while(recent.length>cap) recent.shift();
+  localStorage.setItem('recentEaten', JSON.stringify(recent));
+  return pick;
 }
 
 function win(fromGame){
@@ -607,7 +617,7 @@ function win(fromGame){
     timeEl.style.display='block';
     timeEl.textContent = `花了 ${sec.toFixed(1)} 秒決定` + (isBest ? '　★新紀錄！' : `（最快 ${best.toFixed(1)} 秒）`);
     document.getElementById('winBtn').textContent='再玩一次';
-    winBtn.onclick=openStart;
+    winBtn.onclick=startGame;
   } else {
     timeEl.style.display='none';
     document.getElementById('winBtn').textContent='再抽一次';
@@ -652,10 +662,13 @@ document.querySelectorAll('#cats button').forEach(b=>{
 
 document.getElementById('startBtn').onclick = ()=>{ if(shouldEgg()) show('eggScreen'); else startGame(); };
 document.getElementById('winBtn').onclick   = openStart;   // 贏了 → 回開始畫面（可重選類別、看上次結果）
-document.getElementById('loseBtn').onclick  = openStart;   // 輸了 → 回開始畫面
+document.getElementById('loseBtn').onclick  = startGame;   // 輸了 → 直接再玩一次
 document.getElementById('eggBtn').onclick   = startGame;
-document.getElementById('peek').onclick     = ()=> show('eggScreen');
 document.getElementById('quickBtn').onclick = quickPick;
+function goHome(){ running=false; openStart(); }   // 停止遊戲並回主畫面
+document.getElementById('homeToggle').onclick = goHome;
+document.getElementById('winHomeBtn').onclick = goHome;
+document.getElementById('loseHomeBtn').onclick = goHome;
 
 /* ---------------- 音效 + 震動 ---------------- */
 let audioCtx=null, muted = localStorage.getItem('muted')==='1';
